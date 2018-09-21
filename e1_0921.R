@@ -1,0 +1,5 @@
+x <- c(1,2,3,4,5)
+y <- c(1,8,27,64,125)
+plot(x,y)
+data(faithful)
+plot(faithful)
