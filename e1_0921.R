@@ -343,7 +343,151 @@ shapiro.test(MA200)
 x = pnorm(1.8820239, lower.tail = FALSE)
 #
 1-pbinom(1850, 3000, .60)
-# Statistics inference is use your dataset ot extract information about populations and anser real-world questions with near certainty
+# Statistics inference is use your dataset ot extract information about populations and anwser real-world questions with near certainty
+# Build on the methods of descriptive statistics
+# Draw conclusions about the population, based on data from the sample
 
 install.packages("ggplot2")
 
+data("Orange")
+head(Orange)
+table(Orange)
+#point of estimate -which one is better, mean or median? The point of estimate gives us the perticulater point value; 
+# The confidence interval estimate gives us the range of estimate
+# statistical inference is the process of making an estimate, prediction, or dicsion about a population, based on a sample
+# point estimator: a sttistic
+# point estimate: a value
+mean(Orange$age)
+mean(Orange$circumference)
+
+median(Orange$age)
+median(Orange$circumference)
+
+#confidence level and significance level
+# 1. Draw conslusions about a population or process from sample data
+# 2. Provide a statement of how much confidence we can place in our conclusions. 
+
+# The most common point estimate is the sample mean X bar, which is used to estimate the poplulation mean u (mu)
+data("women")
+attach(women)
+summary(women)
+plot(height, weight)
+#estimate median; mean and standard deviation
+mean(height)
+median(height)
+mode(height)
+sd(height)
+mean(weight)
+median(weight)
+mode(weight)
+sd(weight)
+
+set.seed(1234)
+x =cbind(rnorm(100,0,1),rnorm(100,0,1),rnorm(100,0,1),
+         rnorm(100,0,1),rnorm(100,0,1),rnorm(100,0,1),
+         rnorm(100,0,1),rnorm(100,0,1),rnorm(100,0,1),
+         rnorm(100,0,1))
+apply(x,2,'mean')
+apply(x,2, 'median')
+# which point of estimate is more efficient, mean or median? Mean
+
+
+round(mean(apply(x,2,'mean')),3)
+round(mean(apply(x,2,'median')),3)
+
+round(var(apply(x,2,'mean')),3)
+round(var(apply(x,2,'median')),3)
+# a point of estimate only gives a single number for a population parameter
+# Just one point -- 
+# the range of estimate??? confidence interval.. 
+# Confidence interval draws inferences about a population by estimating an unknown paramerter; using an interval
+# used to estimate population parameters using a range of values...
+ # confidence level - how likely tht the population parameter is contained within the confidence interval. 
+
+
+qnorm(0.05)
+qnorm(0.025)
+qnorm(0.005)
+set.seed(343)
+milk= 129-rexp(100000,0.95)
+hist(milk, main="Histogram of Milk Population", col = "red")
+true_mean=mean(milk)
+true_sd=sd(milk)
+true_mean
+true_sd
+#How close our data will be when we sample them from our 100000 jags of milk data?
+# We can get a fairly accurate estimate of a large population by sampling a relatively smal subset of individuals
+
+set.seed(343)
+n=50
+sample_milk = sample(milk, size=50, rep=T)
+sample_mean = mean(sample_milk)
+sample_mean
+sample_mean - true_mean
+sample_mean -1.96*sd(sample_milk)/sqrt(n)
+sample_mean +1.96*sd(sample_milk)/sqrt(n)
+boxplot(milk, sample_milk, main = "Population vs. Sample")
+hist(sample_milk)
+
+# Central Limit Theorem: no matter what the shape of the population distribution, 
+# the shape of the distribution of the sample means is (approximately) normal
+
+milk_mean=numeric(0)
+for (i in 1:1000)
+  milk_mean[i] =mean(sample(milk, 50, rep=T))
+hist(milk_mean)
+
+qqnorm(milk_mean)
+qqline(milk_mean)
+# calculate CI
+samp_mean = numeric(0)
+for (i in 1:100)
+  samp_mean[i]= mean(sample(milk, 50, rep=T))
+hist(samp_mean)
+lines(density(samp_mean), lwd = 3, col="red")
+
+#CI 90%
+m = 20
+n = 50
+sigma = sd(milk)
+SE = sigma/sqrt(n)
+alpha = 0.10; zcrit=qnorm(1-alpha/2)
+matplot(rbind(samp_mean[1:m]-zcrit*SE,samp_mean[1:m] + zcrit*SE),
+        rbind(1:m, 1:m), type = "l", lty =1, lwd =2,
+        col = "darkgray",
+        xlab = "Ounces",
+        ylab = "Confidence Intervals",
+        main = "90% Conf. Int."); 
+abline(v=mean(milk))
+
+#CI 80% 
+m = 20
+n = 50
+sigma = sd(milk)
+SE = sigma/sqrt(n)
+alpha = 0.20; zcrit=qnorm(1-alpha/2)
+matplot(rbind(samp_mean[1:m]-zcrit*SE,samp_mean[1:m] + zcrit*SE),
+        rbind(1:m, 1:m), type = "l", lty =1, lwd =2,
+        col = "darkgray",
+        xlab = "Ounces",
+        ylab = "Confidence Intervals",
+        main = "80% Conf. Int."); 
+abline(v=mean(milk))
+# We use qnorm(.975) to get the desired z critical value instead of qnorm(0.95) because the sibtribution has two tails.
+# 18 out of 20 capture the ture mean; so remember to use large sample, not just one..
+# we can say 95% of the time, we'll cover the true mean. Here we use data  the estimate the population parameter and with CI.
+# Instead we use the hypothesis: data could reject the hypothesis.. 
+# an educated guess about something iin the world.. something testable by experiment or observation. 
+# quantitative way to evaluate the sample
+# statistical hypothesis is a claim about population parameter; we start with two Hypothesis
+# Null Hypothesis: a claim initially assumed to be true, a prior belief, the status quo, the current standard
+# Alternative Hypothesis: The contradictory claim, the competing claim, new theory, an alternative standard.
+# Decision Principle: We reject H0 in favor of HA if sample data show strong evidence that H0 is false. 
+# Otherwise we do not reject H0. Statisticians also say: "we fail to reject H0" (??? means H0 is true???)
+
+# Test Statistic: a function of sample data we use to make a decision(reject H0 or do not reject H0)
+# Rejection region: the set of all test statistic values for which H0 will be rejected
+# Decision rule: The null hypothesis(H0) will be rejeted if our test statistic falls in teh rejection region
+# # innocent until proven guilty - the mean of the sample is equal to the mean of the population; 
+# we need to show the mean of the sample is NOT equal to the mean of the population - to reject this hypothesis.. 
+# if the mean is equal to the mean of the population, we fail to reject H0..
