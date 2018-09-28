@@ -491,3 +491,206 @@ abline(v=mean(milk))
 # # innocent until proven guilty - the mean of the sample is equal to the mean of the population; 
 # we need to show the mean of the sample is NOT equal to the mean of the population - to reject this hypothesis.. 
 # if the mean is equal to the mean of the population, we fail to reject H0..
+
+# Paired Test - test two samples are form the same distribution
+data("chickwts")
+summary(chickwts)
+head(chickwts)
+meat=chickwts[chickwts$feed=="meatmeal",1]
+horse=chickwts[chickwts$feed=="horsebean",1]
+meat
+horse
+boxplot(meat, horse, main = "Meatmeal      Horsebean")
+qqnorm(meat)
+qqline(meat)
+qqnorm(horse)
+qqline(horse)
+# qqplot produces a QQ plot of two datasets. If these two datasets are all on one side of the redline here, 
+# there is a factor that affect these two dataset. In the case the feed. If the feed doesn't affect the weight,
+# the qqplot will show data randomly show on each side of the redline
+qqplot(meat, horse, xlim=c(100, 420), xlab="Meatmeal", ylab="Horsebean", 
+       ylim=c(100,420), pch=20, cex=2)
+abline(a=0, b=1, col="red")
+
+#Parallel Plot
+plot(x=c(meat, horse), y=c(rep(0, length(meat)),rep(1, length(horse))), pch="*",
+     ylim=c(-1,2),cex=3,ylab="",xlab="Weight",main="Parallel Plot")
+text(x=300, y=-0.4, labels("Meat meal"), cex=1)
+text(x=160,y =1.9, labels("Horsebean", cex=1)
+abline(h=1); abline(h=0)
+
+# from the visual plot, looked like the weights are related to the feed. Next we use statistics approach for testing it.
+# Hypothesis test H0 mean of the meat is the same as mean of the horsebean
+
+# Two sample t-test is used to determine if the means of two independent data samples are different from one another 
+# It refers as Welch's t-test - 2 samples compared
+# Student's test: 1 sample compared with a population
+#.t.test - assume the data is normally distributed and are NOT related
+mean.meat=mean(meat)
+mean.horse=mean(horse)
+sd.meat=sd(meat)/sqrt(length(meat))
+sd.horse=sd(horse)/sqrt(length(horse))
+T.stat =( mean.meat - mean.horse)/sqrt(sd.meat^2+sd.horse^2)
+T.stat
+# the result of t.test: t = 5.0594 p-value = 0.0001054 very low
+t.test(meat, horse)
+
+# Paired t-test helps compare two samples where observations from one dample can be paired with the other
+# Before-and -after measurements on the same subjects
+# compare two different treatments where the treatments are given to th same subjects
+install.packages("PairedData")
+library(PairedData)
+data(IceSkating)
+attach(IceSkating)
+IceSkating
+summary(IceSkating)
+# Is there a difference in speed when the leg is extended vs flexed?
+qqplot(Extension, Flexion, xlim=c(1.5,2.5), ylim=c(1.5,2.5), pch=20, cex=2)
+abline(a=0, b=1, lwd=3, col="red")
+with(IceSkating,plot(paired(Extension,Flexion),type="McNeil"))
+# Paired t-test assumption: difference between the pairs has to follow a normal distribution
+# in this case, the original data has no normal distribution constraint
+#par(mfrow=c(1,3)) 
+hist(Extension)
+hist(Flexion)
+hist(Extension-Flexion)
+# better way 
+with(IceSkating, qqnorm(Extension-Flexion))
+with(IceSkating, qqline(Extension-Flexion))
+# confirm that the difference between Externsion and Flexion is normally distributed
+# what if differences between the pairs are NOT normal, DO NOT use this paired test. 
+# use Wilcoxon singed-rank test. 
+shapiro.test(Extension-Flexion)
+d = Extension-Flexion
+d
+mean_diff =mean(Extension) - mean(Flexion)
+mean_diff
+mean(d)
+# What's our null hypothesis? The null hypothesis we assume that mean(d) is equal to 0; 
+
+# the alternative is mean(d) is not equal to 0
+# We wanted to have the evidence strong enough to reject the difference is 0; this will be a two tailed test; 
+# In R, the function pt give the vlaue of the t distribution at our calculated test statistic (T) with df = n-1
+# Since this is a two sided test, multiply by 2 to get the p-value
+pp_v = 2*(1-pt(2.9346765,6))
+pp_v
+t.test(Extension, Flexion, paired = TRUE)
+# Do NOT do regular t-test on paired data as following - p-value showed high -0.3046 means we can't reject the null hypothesis
+# at any significant level - the df is Not 6, it's 11.875
+t.test(Extension, Flexion)
+# in the case the difference between the pair is not normally distributed, use Wilcoxon signed-rank test
+wilcox.test(Extension, Flexion, paired=TRUE)
+# linear regression models and assumptions
+rainfall = c(3.07,3.55,3.90,4.38,4.79,5.30,5.42,5.99,6.46,6.77)
+wheat =c(78,82,85,91,92,96,97,104,111,119)
+summary(cbind(rainfall,wheat))
+par(mfrow=c(1,1))
+plot(rainfall, wheat, main = "Rainfall vs Wheat")
+# linear regression
+# Describes how a response variable Y changes as an explanatory variable X changes
+# Minimizes teh squared difference between each observatin and the fitted line
+
+# squared difference vs absolute difference - the squard difference fits better for the slop and y intercept
+wheat.mod = lm(wheat~rainfall)
+summary(wheat.mod)
+# from the output, wheat is regressed on rainfall. 
+# check the residuals to see if there are outliers, the median is close to 0. We wanted to see the residuals normally distributed
+# Coefficients is where i find our the y-intercept -Beta 0 hat 45.0835, Beta 1 hat 10.1585
+# what's the wheat height with 5 inches rain
+wheat5 = 45.0835 + 10.1585*5 
+# what about 100 inches? :-)
+# 
+# plot the residuals
+qqnorm(residuals(lm(wheat~rainfall)))
+qqline(residuals(lm(wheat~rainfall)), lwd =2, col="Blue")
+# then we need to access how well our model fits
+data(mtcars)
+summary(mtcars)
+#plot(mtcars$wt, mtcars$mpg)
+# visually see if the data have the linear relationship
+plot(mpg ~ wt, data=mtcars)
+mpg_model=lm(mpg ~ wt, data=mtcars)
+summary(mpg_model)
+#Check the residuals - if the median isbiclose to 0, min and max... is it normally distributed
+# Coefficients intercept and slope.. mpg = 37.2851  -5.3445*wt
+# this is the T test, 
+qt(.0975,df=28)
+pt(-9.559,df=28)
+hist(mpg_model$residuals)
+qqnorm(mpg_model$residuals)
+qqline(mpg_model$residuals )
+shapiro.test(mpg_model$residuals)
+# need to add more predictors to our modeal
+# collinearity - occurs when tow or more predictor variables are closely related to one another, or highly correlated
+
+# multiple Linear with weight and horsepower..
+mpg_model1= lm(mpg~wt+hp, data=mtcars)
+summary(mpg_model1)
+# how do our model changes when adding one more variable.. 
+cor(mtcars$wt, mtcars$hp)
+# cor((mtcars$wt, mtcars$hp)) 0.65 - highly correlated - little high
+
+# collinear: eith highly correclated or contribute the smae information to the model
+# add all predictor into the model
+mpg_model1= lm(mpg~., data=mtcars)
+summary(mpg_model1)
+# look at the pvalue - it showed none of them are significant; the adjusted Rsqure went down; we might get the poor result.
+# as number of explanatory variables increases, adjusted R square gets smaller the Rsqure.
+
+pairs(mtcars[,c(1:4)])
+
+pairs(mtcars[,c(5:7)])
+pairs(mtcars[,c(1,3:7)], col='blue')
+round(cor(mtcars[,c(1,3:7)]),2)
+# overfit - use the principle of parsimorny - the simple the better. 
+# start pruning; choose the variable has the highest adjusted Rsqure; P value is a rough meansure. 
+mpg_model2 <- step(lm(mpg ~ ., data=mtcars))
+
+#multiple Liner Regression
+install.packages("MASS")
+library(MASS)
+data(Pima.tr)
+head(Pima.tr)
+pima=Pima.tr; summary(pima)
+hist(pima$bp)
+# not skewed
+plot(density(pima$bp), main = "blood pressure")
+# relationship between data
+pairs(pima[1:4])
+# you may see the outliers from the pairs, like skin
+pairs(pima[5:8])
+round(cor(pima[1:7]), 2)
+# looks like the small correlation...0.66(bmi/skik), and 0.60(npreg/age)
+lm1 <-lm(bmi~npreg+glu+bp+skin+ped+age+type, data=pima)
+summary(lm1)
+#Residuals are not normally distribution
+#Min       1Q   Median       3Q      Max 
+#-19.9065  -2.5723  -0.1412   2.6039  11.2664 
+
+# looking for low P value - close to zero anything above .05 or .01 ; tells you that variable is not siginificant in the model
+# in this case npreg, glu, bp, age.. we should NOT use them.. 
+# We use stepwise regression - it lets us drop insignificant variables one by one.. 
+lm2 <- lm(bmi~npreg+glu+bp+skin+ped+age+type, data=pima)
+drop1(lm2, test="F")
+# the Sum of sq -drop the  has the smallest sum of sq  
+#  drop the one has the smallest RSS,
+# drop the one has the smallest AIC
+# F value is used to test significant; 
+# drop the largest P value
+# in this case we remove the npreg
+lm3 <- lm(bmi~glu+bp+skin+ped+age+type, data=pima)
+drop1(lm3, test="F")
+# choose the next drop glu
+lm4 <- lm(bmi~bp+skin+ped+age+type, data=pima)
+drop1(lm4, test="F")
+# skin is significant; then type; drop bp
+lm5 <- lm(bmi~skin+ped+age+type, data=pima)
+drop1(lm5, test="F")
+# drop the age
+lm6 <- lm(bmi~skin+ped+type, data=pima)
+drop1(lm6, test="F")
+# Now this is the final.. for model bmi, but we could modle glu
+lm7 <- lm(glu~npreg+bmi+bp+skin+ped+age+type, data=pima)
+summary(lm7)
+# check the normality of the residuals
+plot(lm7$fitted.values, lm7$residuals, pch=20)
