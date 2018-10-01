@@ -694,3 +694,24 @@ lm7 <- lm(glu~npreg+bmi+bp+skin+ped+age+type, data=pima)
 summary(lm7)
 # check the normality of the residuals
 plot(lm7$fitted.values, lm7$residuals, pch=20)
+
+#ANOVA - analysis of variance 
+# compare means arcoss groups
+# Anova requires variability of the groups to be homogenous(?)
+# Anova requires numbers in the groups are proximately the same
+
+require(stats)
+require(graphics)
+boxplot(weight~feed, data=chickwts, col="lightgray", main = "Chickwts data", ylab = "Weight in grams", 
+        xlab="Type of Feed")
+summary(chickwts)
+# use the variable-width box plot to verify the size of each group
+# create variable-width with boxplot
+# example code here
+names = c(rep("1", 15), rep("2", 80),rep("3", 7),rep("4", 36))
+value = c(sample(2:5,15),replace=T), sample(4:10,80),replace=T),
+          sample(1:7,7),replace=T), sample(3:8,36),replace=T))
+data=data.frame(names,value)
+propotion=table(data$names)/nrow(data)
+boxplot(data$value ~ data$names, width=propotion,
+        main = "Width Relative to Group Size, n = 15,80,7,36")
